@@ -29,24 +29,27 @@ public:
         sIndividualProgression->CheckAdjustments(player);
     }
 
-    // Waiting for PR: https://github.com/azerothcore/azerothcore-wotlk/pull/13046
-//    void OnSetMaxLevel(Player* player, uint32& maxPlayerLevel) override
-//    {
-//        if (!sIndividualProgression->hasPassedProgression(player, PROGRESSION_NAXX40))
-//        {
-//            if (sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL) > 60)
-//            {
-//                maxPlayerLevel = 60;
-//            }
-//        }
-//        else if (!sIndividualProgression->hasPassedProgression(player, PROGRESSION_TBC_TIER_5))
-//        {
-//            if (sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL) > 70)
-//            {
-//                maxPlayerLevel = 70;
-//            }
-//        }
-//    }
+    void OnSetMaxLevel(Player* player, uint32& maxPlayerLevel) override
+    {
+        if (!sIndividualProgression->enabled)
+        {
+            return;
+        }
+        if (!sIndividualProgression->hasPassedProgression(player, PROGRESSION_NAXX40))
+        {
+            if (sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL) > 60)
+            {
+                maxPlayerLevel = 60;
+            }
+        }
+        else if (!sIndividualProgression->hasPassedProgression(player, PROGRESSION_TBC_TIER_5))
+        {
+            if (sWorld->getIntConfig(CONFIG_MAX_PLAYER_LEVEL) > 70)
+            {
+                maxPlayerLevel = 70;
+            }
+        }
+    }
 
     void OnMapChanged(Player* player) override
     {
@@ -130,7 +133,7 @@ public:
         }
     }
 
-    void OnGiveXP(Player* player, uint32& amount, Unit* /*victim*/, uint8 /*xpSource*/) override
+    void OnGiveXP(Player* player, uint32& amount, Unit* /*victim*/, uint8 xpSource) override
     {
         if (!sIndividualProgression->enabled)
         {
@@ -139,11 +142,19 @@ public:
         // Player is still in Vanilla content - do not give XP past level 60
         if (!sIndividualProgression->hasPassedProgression(player, PROGRESSION_NAXX40) && player->getLevel() >= 60)
         {
+            // Still award XP to pets - they won't be able to pass the player's level
+            Pet* pet = player->GetPet();
+            if (pet && xpSource == XPSOURCE_KILL)
+                pet->GivePetXP(player->GetGroup() ? amount / 2 : amount);
             amount = 0;
         }
             // Player is in TBC content - do not give XP past level 70
         else if (!sIndividualProgression->hasPassedProgression(player, PROGRESSION_TBC_TIER_5) && player->getLevel() >= 70)
         {
+            // Still award XP to pets - they won't be able to pass the player's level
+            Pet* pet = player->GetPet();
+            if (pet && xpSource == XPSOURCE_KILL)
+                pet->GivePetXP(player->GetGroup() ? amount / 2 : amount);
             amount = 0;
         }
     }
