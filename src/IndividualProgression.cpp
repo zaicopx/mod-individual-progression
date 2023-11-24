@@ -143,10 +143,10 @@ void IndividualProgression::AdjustStats(Player* player, float computedAdjustment
     player->CastCustomSpell(player, ABSORB_SPELL, &bp1, nullptr, nullptr, false);
 }
 
-float IndividualProgression::ComputeVanillaAdjustment(Player *player, float configAdjustmentValue)
+float IndividualProgression::ComputeVanillaAdjustment(uint8 playerLevel, float configAdjustmentValue)
 {
-    float adjustmentApplyPercent = (player->getLevel() - 10.0f) / 50.0f;
-    return player->getLevel() > 10 ? 1.0f - ((1.0f - configAdjustmentValue) * adjustmentApplyPercent) : 1;
+    float adjustmentApplyPercent = (float(playerLevel) - 10.0f) / 50.0f;
+    return playerLevel > 10 ? 1.0f - ((1.0f - configAdjustmentValue) * adjustmentApplyPercent) : 1;
 }
 
 /**
@@ -352,10 +352,12 @@ public:
         if (sIndividualProgression->simpleConfigOverride)
         {
             sWorld->setIntConfig(CONFIG_WATER_BREATH_TIMER, 60000);
+            sWorld->setIntConfig(CONFIG_LFG_OPTIONSMASK, 4);
             sWorld->setBoolConfig(CONFIG_OBJECT_QUEST_MARKERS, false);
             sWorld->setBoolConfig(CONFIG_OBJECT_SPARKLES, false);
             sWorld->setBoolConfig(CONFIG_PLAYER_SETTINGS_ENABLED, true);
             sWorld->setBoolConfig(CONFIG_LOW_LEVEL_REGEN_BOOST, false);
+            sWorld->setBoolConfig(CONFIG_DBC_ENFORCE_ITEM_ATTRIBUTES, false);
         }
     }
 };
